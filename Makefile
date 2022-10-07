@@ -12,7 +12,7 @@ OS_ARCH            := $(GO_OS)_$(GO_ARCH)
 GIT_BRANCH         :=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_REVISION       :=$(shell git rev-list -1 HEAD)
 GIT_REVISION_DIRTY :=$(shell (git diff-index --quiet HEAD -- . && git diff --staged --quiet -- .) || echo "-dirty")
-GO_LINT_CHECKS     := govet ineffassign staticcheck deadcode unused
+GO_LINT_CHECKS     := govet ineffassign staticcheck unused
 
 .PHONY: prepare lint check sec build-dev build install test testacc fmt release-test release clean
 
