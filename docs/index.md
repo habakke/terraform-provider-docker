@@ -14,6 +14,9 @@ terraform {
 }
 
 provider "docker" {
+  registry   = "registry.docker.com"
+  username   = ""
+  password   = ""
   log_caller = false
 }
 

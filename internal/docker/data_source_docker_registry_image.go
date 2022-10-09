@@ -2,10 +2,11 @@ package docker
 
 import (
 	"context"
+	"fmt"
+	"github.com/habakke/terraform-provider-docker/internal/registry"
 	"github.com/habakke/terraform-provider-docker/internal/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/heroku/docker-registry-client/registry"
 )
 
 func dataSourceDockerRegistryImage() *schema.Resource {
@@ -22,6 +23,7 @@ func dataSourceDockerRegistryImage() *schema.Resource {
 			},
 			"digest": {
 				Type:     schema.TypeString,
+				Optional: false,
 				Computed: true,
 			},
 		},
@@ -30,16 +32,13 @@ func dataSourceDockerRegistryImage() *schema.Resource {
 
 func dataSourceDockerRegistryImageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	//conf := meta.(providerConfiguration)
+	conf := meta.(providerConfiguration)
 
 	name := util.ResourceToString(d, "name")
 	tag := util.ResourceToString(d, "tag")
 
-	url := "https://registry-1.docker.io/"
-	username := "" // anonymous
-	password := "" // anonymous
-
-	r, err := registry.New(url, username, password)
+	url := fmt.Sprintf("https://%s", conf.Registry)
+	r, err := registry.New(ctx, url, conf.Username, conf.Password)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -48,6 +47,8 @@ func dataSourceDockerRegistryImageRead(ctx context.Context, d *schema.ResourceDa
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	_ = d.Set("digest", digest.Hex())
+
+	d.SetId(fmt.Sprintf("%s/%s:%s", conf.Registry, name, tag))
+	_ = d.Set("digest", digest.String())
 	return diags
 }
