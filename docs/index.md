@@ -14,14 +14,14 @@ terraform {
 }
 
 provider "docker" {
-  registry   = "registry.docker.com"
+  registry   = "index.docker.io"
   username   = ""
   password   = ""
   log_caller = false
 }
 
 data "docker_registry_image" "debian" {
-  name = "debian"
+  name = "library/debian"
   tag  = "latest"
 }
 ```
