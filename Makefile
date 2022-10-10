@@ -57,7 +57,7 @@ release-test: testacc
 
 release: export GITHUB_SHA=$(GITSHA)
 release: release-test
-	git tag -a $(VERSION) -m "Release" && git push origin $(VERSION)
+	@read -p "Enter Release Tag: " release; git tag -a $$release -m "Release $$release" && git push origin $$release
 
 clean:
 	rm -rf $(BUILD_DIR)
