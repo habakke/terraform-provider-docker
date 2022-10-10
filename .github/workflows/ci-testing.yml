@@ -24,8 +24,8 @@ jobs:
           DOCKER_REGISTRY: "index.docker.io"
           DOCKER_IMAGE: "library/ubuntu"
           DOCKER_IMAGE_TAG: "latest"
-          DOCKER_USERNAME: ${{ secret.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secret.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: make test
       - name: Upload Coverage report to CodeCov
         uses: codecov/codecov-action@v3.1.1
@@ -56,6 +56,6 @@ jobs:
           DOCKER_REGISTRY: "index.docker.io"
           DOCKER_IMAGE: "library/ubuntu"
           DOCKER_IMAGE_TAG: "latest"
-          DOCKER_USERNAME: ${{ secret.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secret.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: make testacc
