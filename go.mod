@@ -6,7 +6,7 @@ require (
 	github.com/docker/distribution v0.0.0-20171011171712-7484e51bf6af
 	github.com/golangci/golangci-lint v1.50.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.23.0
-	github.com/opencontainers/go-digest v1.0.0-rc1
+	github.com/opencontainers/go-digest v1.0.0
 	github.com/rs/zerolog v1.28.0
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094
