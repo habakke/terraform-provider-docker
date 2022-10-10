@@ -20,6 +20,12 @@ jobs:
             ${{ runner.OS }}-build-
             ${{ runner.OS }}-
       - name: test
+        env:
+          DOCKER_REGISTRY: "index.docker.io"
+          DOCKER_IMAGE: "library/ubuntu"
+          DOCKER_IMAGE_TAG: "latest"
+          DOCKER_USERNAME: ${{ secret.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secret.DOCKER_PASSWORD }}
         run: make test
       - name: Upload Coverage report to CodeCov
         uses: codecov/codecov-action@v3.1.1
@@ -46,4 +52,10 @@ jobs:
             ${{ runner.OS }}-build-
             ${{ runner.OS }}-
       - name: testacc
+        env:
+          DOCKER_REGISTRY: "index.docker.io"
+          DOCKER_IMAGE: "library/ubuntu"
+          DOCKER_IMAGE_TAG: "latest"
+          DOCKER_USERNAME: ${{ secret.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secret.DOCKER_PASSWORD }}
         run: make testacc
