@@ -23,28 +23,31 @@ func New() *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"registry": {
 				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DOCKER_REPOSITORY", nil),
-				Description: "docker registry",
+				Optional:    true,
+				Computed:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DOCKER_REGISTRY", "index.docker.io"),
+				Description: "docker registry host",
 			},
 			"username": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DOCKER_USERNAME", nil),
-				Description: "docker username",
+				Description: "docker repository username",
 			},
 			"password": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DOCKER_PASSWORD", nil),
-				Description: "docker password",
+				Description: "docker repository password",
 			},
 			"log_caller": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DOCKER_LOG_CALLER", nil),
-				Description: "Include calling function in log entries",
-				Default:     false,
+				Computed:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DOCKER_LOG_CALLER", false),
+				Description: "include calling function in log entries",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -63,13 +66,10 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	logCaller := util.ResourceToBool(d, "log_caller")
 	util.ConfigureTerraformProviderLogging(logCaller)
 
-	registry := util.ResourceToString(d, "registry")
-	username := util.ResourceToString(d, "username")
-	password := util.ResourceToString(d, "password")
 	conf := providerConfiguration{
-		Registry: registry,
-		Username: username,
-		Password: password,
+		Registry: util.ResourceToString(d, "registry"),
+		Username: util.ResourceToString(d, "username"),
+		Password: util.ResourceToString(d, "password"),
 	}
 	return conf, diags
 }

@@ -64,6 +64,46 @@ func NewInsecure(ctx context.Context, registryURL, username, password string) (*
 
 var GCRScopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
 
+func wrapOauth2Transport(ctx context.Context, transport http.RoundTripper) http.RoundTripper {
+	creds, err := google.FindDefaultCredentials(ctx, GCRScopes...)
+	if err != nil {
+		return transport
+	}
+	return &oauth2.Transport{
+		Base:   transport,
+		Source: creds.TokenSource,
+	}
+}
+
+func wrapBasicAuthTransport(username, password, url string, transport http.RoundTripper) http.RoundTripper {
+	if username == "" {
+		return transport
+	}
+	return &BasicTransport{
+		Transport: transport,
+		URL:       url,
+		Username:  username,
+		Password:  password,
+	}
+}
+
+func wrapTokenTransport(username, password string, transport http.RoundTripper) http.RoundTripper {
+	if username == "" {
+		return transport
+	}
+	return &TokenTransport{
+		Transport: transport,
+		Username:  username,
+		Password:  password,
+	}
+}
+
+func wrapErrorTransport(transport http.RoundTripper) http.RoundTripper {
+	return &ErrorTransport{
+		Transport: transport,
+	}
+}
+
 /*
  * Given an existing http.RoundTripper such as http.DefaultTransport, build the
  * transport stack necessary to authenticate to the Docker registry API. This
@@ -71,36 +111,7 @@ var GCRScopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
  * error handling this library relies on.
  */
 func WrapTransport(ctx context.Context, transport http.RoundTripper, url, username, password string) http.RoundTripper {
-	var tokenTransport *TokenTransport
-	// Google GCR / GAR support
-	creds, err := google.FindDefaultCredentials(ctx, GCRScopes...)
-	if err == nil {
-		googleOauth2Transport := &oauth2.Transport{
-			Base:   transport,
-			Source: creds.TokenSource,
-		}
-		tokenTransport = &TokenTransport{
-			Transport: googleOauth2Transport,
-			Username:  username,
-			Password:  password,
-		}
-	} else {
-		tokenTransport = &TokenTransport{
-			Transport: transport,
-			Username:  username,
-			Password:  password,
-		}
-	}
-	basicAuthTransport := &BasicTransport{
-		Transport: tokenTransport,
-		URL:       url,
-		Username:  username,
-		Password:  password,
-	}
-	errorTransport := &ErrorTransport{
-		Transport: basicAuthTransport,
-	}
-	return errorTransport
+	return wrapErrorTransport(wrapBasicAuthTransport(username, password, url, wrapTokenTransport(username, password, wrapOauth2Transport(ctx, transport))))
 }
 
 func newFromTransport(ctx context.Context, registryURL, username, password string, transport http.RoundTripper, logf LogfCallback) (*Registry, error) {
