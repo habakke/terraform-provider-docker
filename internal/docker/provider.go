@@ -64,7 +64,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	// configure logging
 	logCaller := util.ResourceToBool(d, "log_caller")
-	util.ConfigureTerraformProviderLogging(logCaller)
+	util.ConfigureTerraformProviderLogging(util.GetEnv("LOGLEVEL", "info"), logCaller)
 
 	conf := providerConfiguration{
 		Registry: util.ResourceToString(d, "registry"),

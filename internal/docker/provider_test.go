@@ -1,7 +1,6 @@
 package docker
 
 import (
-	"github.com/habakke/terraform-provider-docker/internal/util"
 	"os"
 	"testing"
 
@@ -16,7 +15,6 @@ var providerFactories = map[string]func() (*schema.Provider, error){
 }
 
 func TestMain(m *testing.M) {
-	util.ConfigureLogging(util.GetEnv("LOGLEVEL", "info"), true)
 	if os.Getenv("TF_ACC") == "" {
 		os.Exit(m.Run())
 	}

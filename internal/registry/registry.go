@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/habakke/terraform-provider-docker/internal/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"log"
@@ -111,7 +112,7 @@ func wrapErrorTransport(transport http.RoundTripper) http.RoundTripper {
  * error handling this library relies on.
  */
 func WrapTransport(ctx context.Context, transport http.RoundTripper, url, username, password string) http.RoundTripper {
-	return wrapErrorTransport(wrapBasicAuthTransport(username, password, url, wrapTokenTransport(username, password, wrapOauth2Transport(ctx, transport))))
+	return wrapErrorTransport(wrapBasicAuthTransport(username, password, url, wrapTokenTransport(username, password, wrapOauth2Transport(ctx, util.NewLoggingRoundTripper(transport)))))
 }
 
 func newFromTransport(ctx context.Context, registryURL, username, password string, transport http.RoundTripper, logf LogfCallback) (*Registry, error) {
