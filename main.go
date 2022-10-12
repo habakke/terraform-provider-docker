@@ -1,11 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/habakke/terraform-provider-docker/internal/docker"
+	"github.com/habakke/terraform-provider-docker/internal/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"github.com/rs/zerolog/log"
 	"os"
 )
 
@@ -21,13 +22,15 @@ func getVersionString(name string) string {
 }
 
 func main() {
+	ctx := context.Background()
+	logger := util.NewTerraformLogger()
 	path, err := os.Getwd()
 	if err != nil {
-		log.Fatal().Err(err).Msgf("failed to initialize provider: %s", err.Error())
+		logger.Errorf(ctx, "failed to initialize provider: %s", err.Error())
 	}
 
-	log.Info().Msgf("%s", getVersionString("terraform-docker-provider"))
-	log.Info().Msgf("%s", path)
+	logger.Infof(ctx, "%s", getVersionString("terraform-docker-provider"))
+	logger.Infof(ctx, "%s", path)
 	plugin.Serve(&plugin.ServeOpts{
 		ProviderFunc: func() *schema.Provider {
 			return docker.Provider()

@@ -42,13 +42,6 @@ func New() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("DOCKER_PASSWORD", nil),
 				Description: "docker repository password",
 			},
-			"log_caller": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Computed:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DOCKER_LOG_CALLER", false),
-				Description: "include calling function in log entries",
-			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"docker_registry_image": dataSourceDockerRegistryImage(),
@@ -61,10 +54,6 @@ func New() *schema.Provider {
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
-
-	// configure logging
-	logCaller := util.ResourceToBool(d, "log_caller")
-	util.ConfigureTerraformProviderLogging(util.GetEnv("LOGLEVEL", "info"), logCaller)
 
 	conf := providerConfiguration{
 		Registry: util.ResourceToString(d, "registry"),

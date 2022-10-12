@@ -7,12 +7,11 @@ import (
 	"github.com/habakke/terraform-provider-docker/internal/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"log"
 	"net/http"
 	"strings"
 )
 
-type LogfCallback func(format string, args ...interface{})
+type LogfCallback func(ctx context.Context, format string, args ...interface{})
 
 /*
  * Discard log messages silently.
@@ -21,17 +20,10 @@ func Quiet(format string, args ...interface{}) {
 	/* discard logs */
 }
 
-/*
- * Pass log messages along to Go's "log" module.
- */
-func Log(format string, args ...interface{}) {
-	log.Printf(format, args...)
-}
-
 type Registry struct {
 	URL    string
 	Client *http.Client
-	Logf   LogfCallback
+	Logger util.Logger
 }
 
 /*
@@ -42,10 +34,10 @@ type Registry struct {
  * This passes http.DefaultTransport to WrapTransport when creating the
  * http.Client.
  */
-func New(ctx context.Context, registryURL, username, password string) (*Registry, error) {
+func New(ctx context.Context, registryURL, username, password string, logger util.Logger) (*Registry, error) {
 	transport := http.DefaultTransport
 
-	return newFromTransport(ctx, registryURL, username, password, transport, Log)
+	return newFromTransport(ctx, registryURL, username, password, transport, logger)
 }
 
 /*
@@ -60,7 +52,7 @@ func NewInsecure(ctx context.Context, registryURL, username, password string) (*
 		},
 	}
 
-	return newFromTransport(ctx, registryURL, username, password, transport, Log)
+	return newFromTransport(ctx, registryURL, username, password, transport, util.NewZerologLogger())
 }
 
 var GCRScopes = []string{"https://www.googleapis.com/auth/cloud-platform"}
@@ -112,10 +104,10 @@ func wrapErrorTransport(transport http.RoundTripper) http.RoundTripper {
  * error handling this library relies on.
  */
 func WrapTransport(ctx context.Context, transport http.RoundTripper, url, username, password string) http.RoundTripper {
-	return wrapErrorTransport(wrapBasicAuthTransport(username, password, url, wrapTokenTransport(username, password, wrapOauth2Transport(ctx, util.NewLoggingRoundTripper(transport)))))
+	return wrapErrorTransport(wrapBasicAuthTransport(username, password, url, wrapTokenTransport(username, password, wrapOauth2Transport(ctx, util.NewLoggingRoundTripper(ctx, transport, util.NewTerraformLogger())))))
 }
 
-func newFromTransport(ctx context.Context, registryURL, username, password string, transport http.RoundTripper, logf LogfCallback) (*Registry, error) {
+func newFromTransport(ctx context.Context, registryURL, username, password string, transport http.RoundTripper, logger util.Logger) (*Registry, error) {
 	url := strings.TrimSuffix(registryURL, "/")
 	transport = WrapTransport(ctx, transport, url, username, password)
 	registry := &Registry{
@@ -123,7 +115,7 @@ func newFromTransport(ctx context.Context, registryURL, username, password strin
 		Client: &http.Client{
 			Transport: transport,
 		},
-		Logf: logf,
+		Logger: logger,
 	}
 
 	if err := registry.Ping(); err != nil {
@@ -133,12 +125,12 @@ func newFromTransport(ctx context.Context, registryURL, username, password strin
 	return registry, nil
 }
 
-func NewFromClient(registryURL string, client *http.Client) (*Registry, error) {
+func NewFromClient(registryURL string, client *http.Client, logger util.Logger) (*Registry, error) {
 	url := strings.TrimSuffix(registryURL, "/")
 	registry := &Registry{
 		URL:    url,
 		Client: client,
-		Logf:   Log,
+		Logger: logger,
 	}
 
 	if err := registry.Ping(); err != nil {
@@ -155,7 +147,7 @@ func (r *Registry) url(pathTemplate string, args ...interface{}) string {
 
 func (r *Registry) Ping() error {
 	url := r.url("/v2/")
-	r.Logf("registry.ping url=%s", url)
+	r.Logger.Infof(context.TODO(), "registry.ping url=%s", url)
 	resp, err := r.Client.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()

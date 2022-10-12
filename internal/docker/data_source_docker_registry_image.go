@@ -38,7 +38,7 @@ func dataSourceDockerRegistryImageRead(ctx context.Context, d *schema.ResourceDa
 	tag := util.ResourceToString(d, "tag")
 
 	url := fmt.Sprintf("https://%s", conf.Registry)
-	r, err := registry.New(ctx, url, conf.Username, conf.Password)
+	r, err := registry.New(ctx, url, conf.Username, conf.Password, util.NewTerraformLogger())
 	if err != nil {
 		return diag.FromErr(err)
 	}

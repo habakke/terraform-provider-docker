@@ -17,7 +17,6 @@ provider "docker" {
   registry   = "index.docker.io"
   username   = ""
   password   = ""
-  log_caller = false
 }
 
 data "docker_registry_image" "debian" {

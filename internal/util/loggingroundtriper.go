@@ -1,40 +1,52 @@
 package util
 
 import (
-	"github.com/rs/zerolog/log"
+	"context"
 	"net/http"
 	"net/http/httputil"
 )
 
-type LoggingRoundTripper struct {
-	next http.RoundTripper
+type Logger interface {
+	Tracef(ctx context.Context, msg string, additionalFields ...interface{})
+	Debugf(ctx context.Context, msg string, additionalFields ...interface{})
+	Warnf(ctx context.Context, msg string, additionalFields ...interface{})
+	Errorf(ctx context.Context, msg string, additionalFields ...interface{})
+	Infof(ctx context.Context, msg string, additionalFields ...interface{})
 }
 
-func NewLoggingRoundTripper(next http.RoundTripper) http.RoundTripper {
+type LoggingRoundTripper struct {
+	next   http.RoundTripper
+	logger Logger
+	ctx    context.Context
+}
+
+func NewLoggingRoundTripper(ctx context.Context, next http.RoundTripper, logger Logger) http.RoundTripper {
 	return &LoggingRoundTripper{
-		next: next,
+		next:   next,
+		logger: logger,
+		ctx:    ctx,
 	}
 }
 
 func (l LoggingRoundTripper) logRequest(req *http.Request) {
-	log.Debug().Msgf(">>> %v", req.URL)
+	l.logger.Debugf(l.ctx, ">>> %v", req.URL)
 	requestDump, err := httputil.DumpRequest(req, true)
 	if err != nil {
-		log.Trace().Err(err).Msgf("failed to dump request")
+		l.logger.Errorf(l.ctx, "failed to dump request")
 	}
-	log.Trace().Msg(string(requestDump))
+	l.logger.Tracef(l.ctx, string(requestDump))
 }
 
 func (l LoggingRoundTripper) logResponse(res *http.Response, err error) {
 	if err != nil {
-		log.Err(err)
+		l.logger.Errorf(l.ctx, err.Error())
 	} else {
-		log.Debug().Msgf("<<< %v", res.Request.URL)
+		l.logger.Debugf(l.ctx, "<<< %v", res.Request.URL)
 		responseDump, err := httputil.DumpResponse(res, true)
 		if err != nil {
-			log.Debug().Err(err).Msg("failed to dump response")
+			l.logger.Debugf(l.ctx, "failed to dump response: %v", err.Error())
 		}
-		log.Trace().Msgf(string(responseDump))
+		l.logger.Tracef(l.ctx, string(responseDump))
 	}
 }
 
