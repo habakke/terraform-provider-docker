@@ -53,8 +53,8 @@ jobs:
             ${{ runner.OS }}-
       - name: testacc
         env:
-          DOCKER_REGISTRY: "index.docker.io"
-          DOCKER_IMAGE: "library/ubuntu"
+          DOCKER_REGISTRY: "docker.io"
+          DOCKER_IMAGE: "/library/ubuntu"
           DOCKER_IMAGE_TAG: "latest"
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
