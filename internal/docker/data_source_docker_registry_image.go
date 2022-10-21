@@ -37,18 +37,17 @@ func dataSourceDockerRegistryImageRead(ctx context.Context, d *schema.ResourceDa
 	name := util.ResourceToString(d, "name")
 	tag := util.ResourceToString(d, "tag")
 
-	url := fmt.Sprintf("https://%s", conf.Registry)
-	r, err := registry.New(ctx, url, conf.Username, conf.Password, util.NewTerraformLogger())
+	r, err := registry.New(ctx, conf.Registry, conf.Username, conf.Password, util.NewTerraformLogger())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	digest, err := r.ManifestDigest(name, tag)
+	digest, err := r.ManifestDigest(ctx, name, tag)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	d.SetId(fmt.Sprintf("%s/%s:%s", conf.Registry, name, tag))
-	_ = d.Set("digest", digest.String())
+	_ = d.Set("digest", digest)
 	return diags
 }
