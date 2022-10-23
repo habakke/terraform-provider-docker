@@ -28,7 +28,7 @@ type registry struct {
 func New(ctx context.Context, dockerHost, username, password string, logger util.Logger) (*registry, error) {
 	var httpClient *http.Client
 	googleCredentials, _ := google.FindDefaultCredentials(ctx, GCRScopes...)
-	httpClient, err := createHTTPClient(googleCredentials)
+	httpClient, err := createHTTPClient(ctx, googleCredentials, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -43,22 +43,24 @@ func New(ctx context.Context, dockerHost, username, password string, logger util
 }
 
 func (r registry) ManifestDigest(ctx context.Context, name string, tag string) (string, error) {
-	b, err := r.dockerRegistryGet(ctx, fmt.Sprintf("%s/manifests/%s", name, tag))
+	b, err := r.dockerRegistryGet(ctx, fmt.Sprintf("/%s/manifests/%s", name, tag))
 	if err != nil {
 		return "", err
 	}
 	return dockerManifestDigest(b), nil
 }
 
-func createHTTPClient(googleCreds *google.Credentials) (*http.Client, error) {
+func createHTTPClient(ctx context.Context, googleCreds *google.Credentials, logger util.Logger) (*http.Client, error) {
 	if googleCreds == nil {
-		return http.DefaultClient, nil
+		return &http.Client{
+			Transport: util.NewLoggingRoundTripper(ctx, http.DefaultTransport, logger),
+		}, nil
 	}
 	client := &http.Client{
-		Transport: &oauth2.Transport{
+		Transport: util.NewLoggingRoundTripper(ctx, &oauth2.Transport{
 			Base:   http.DefaultTransport,
 			Source: googleCreds.TokenSource,
-		},
+		}, logger),
 	}
 	return client, nil
 }

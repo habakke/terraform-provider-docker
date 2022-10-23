@@ -25,7 +25,7 @@ func New() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DOCKER_REGISTRY", "docker.io"),
+				DefaultFunc: schema.EnvDefaultFunc("DOCKER_REGISTRY", "index.docker.io"),
 				Description: "docker registry host",
 			},
 			"username": {

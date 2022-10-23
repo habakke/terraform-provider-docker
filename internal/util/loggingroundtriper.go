@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 )
@@ -34,7 +35,7 @@ func (l LoggingRoundTripper) logRequest(req *http.Request) {
 	if err != nil {
 		l.logger.Errorf(l.ctx, "failed to dump request")
 	}
-	l.logger.Tracef(l.ctx, string(requestDump))
+	l.logger.Tracef(l.ctx, fmt.Sprintf(">>> %v\n%s", req.URL, string(requestDump)))
 }
 
 func (l LoggingRoundTripper) logResponse(res *http.Response, err error) {
@@ -46,7 +47,7 @@ func (l LoggingRoundTripper) logResponse(res *http.Response, err error) {
 		if err != nil {
 			l.logger.Debugf(l.ctx, "failed to dump response: %v", err.Error())
 		}
-		l.logger.Tracef(l.ctx, string(responseDump))
+		l.logger.Tracef(l.ctx, fmt.Sprintf("<<< %v\n%s", res.Request.URL, string(responseDump)))
 	}
 }
 
