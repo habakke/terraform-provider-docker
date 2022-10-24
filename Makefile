@@ -56,7 +56,7 @@ release-test: testacc
 	goreleaser release --skip-publish --snapshot --rm-dist --skip-sign
 
 release: export GITHUB_SHA=$(GITSHA)
-release: release-test
+release: test
 	@read -p "Enter Release Tag: " release; git tag -a $$release -m "Release $$release" && git push origin $$release
 
 clean:
